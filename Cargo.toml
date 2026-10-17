@@ -47,7 +47,7 @@ features = [
 
 # Vector2 and Matrix3x2 for Direct2D: part of the windows family, MIT OR Apache-2.0.
 [dependencies.windows-numerics]
-version = "0.3.1"
+version = "0.100.0"
 
 [profile.release]
 opt-level = 3
