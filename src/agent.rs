@@ -4,6 +4,7 @@
 //! taskbar's restart broadcast (a message-only window would miss the last).
 
 use std::cell::RefCell;
+use std::time::{Duration, Instant};
 
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, POINT, WPARAM};
 use windows::Win32::System::DataExchange::COPYDATASTRUCT;
@@ -30,6 +31,23 @@ pub struct Agent {
     pub settings: Settings,
     pub tray: Tray,
     taskbar_created: u32,
+    started: Instant,
+}
+
+/// How long after the agent starts a plain relaunch is taken for the
+/// sign-in starting it twice (the Run key and Windows' "restart apps", or
+/// the MSI and the Store copy side by side) rather than for the user
+/// opening it from Start: one showed the settings at every sign-in.
+fn startup_grace() -> Duration {
+    // A debug build takes `SCM_STARTUP_GRACE_SECS`, so the gate can be
+    // tested without waiting it out.
+    if cfg!(debug_assertions)
+        && let Some(secs) = std::env::var_os("SCM_STARTUP_GRACE_SECS")
+        && let Some(secs) = secs.to_str().and_then(|s| s.parse().ok())
+    {
+        return Duration::from_secs(secs);
+    }
+    Duration::from_secs(120)
 }
 
 thread_local! {
@@ -95,11 +113,20 @@ pub fn run(first: Request) -> i32 {
         let settings = Settings::load();
         crate::i18n::apply(settings.language);
         crate::theme::apply(settings.theme);
-        let first_run = !crate::settings::file().exists();
         // First run: write the file out, so the user has something to edit.
-        if first_run && let Err(e) = settings.save() {
-            log::error(&format!("settings save: {e}"));
-        }
+        // The welcome below hangs on that write: where it fails (a profile
+        // the agent cannot write to) every start would be the first, and
+        // the settings would open at every sign-in.
+        let first_run = !crate::settings::file().exists();
+        let welcome = first_run
+            && first == Request::None
+            && match settings.save() {
+                Ok(()) => true,
+                Err(e) => {
+                    log::error(&format!("settings save: {e}"));
+                    false
+                }
+            };
         let tray = Tray::new(hwnd);
         AGENT.with(|a| {
             *a.borrow_mut() = Some(Agent {
@@ -107,13 +134,13 @@ pub fn run(first: Request) -> i32 {
                 settings: settings.clone(),
                 tray,
                 taskbar_created: RegisterWindowMessageW(w!("TaskbarCreated")),
+                started: Instant::now(),
             })
         });
         register_hotkeys();
         // The very first start shows the settings as a welcome: where the
         // shortcuts are and what happens after a capture. Starts with
         // Windows afterwards stay silent in the tray.
-        let welcome = first_run && first == Request::None;
         handle(first);
         if welcome {
             dispatch(Command::OpenSettings);
@@ -167,6 +194,17 @@ fn register_hotkeys() {
 pub fn handle(request: Request) {
     match request {
         Request::None => {}
+        // Opened again from Start or a shortcut with the agent already in
+        // the tray: show the settings, so opening it always shows something.
+        // Not while signing in, where a second launch is the system's doing.
+        Request::Relaunch => {
+            let young = with(|a| a.started.elapsed() < startup_grace()).unwrap_or(false);
+            if young {
+                log::info("relaunch while starting: ignored");
+            } else {
+                dispatch(Command::OpenSettings);
+            }
+        }
         Request::Run(c) => dispatch(c),
         Request::Annotate(path) => match crate::image::load(&path) {
             // A file opened from outside is edited as a copy: «Listo» puts

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity type="win32" name="ScreenShotCM" version="0.4.13.0" processorArchitecture="amd64"/>
+  <assemblyIdentity type="win32" name="ScreenShotCM" version="0.4.14.0" processorArchitecture="amd64"/>
   <description>ScreenShotCM</description>
   <!-- Common Controls 6: themed buttons, checkboxes and lists in the settings. -->
   <dependency>

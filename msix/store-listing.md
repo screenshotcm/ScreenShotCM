@@ -85,8 +85,9 @@ portapapeles, editor de imágenes, productividad
 
 **Novedades de esta versión**:
 
-> La carpeta de capturas por defecto queda en tu equipo, ya no en OneDrive, y
-> en Ajustes se puede escribir o pegar la ruta. Imagen más nítida en el editor.
+> Ya no se abre la ventana de Ajustes al iniciar sesión cuando Windows arranca
+> la app dos veces (por ejemplo, con la versión MSI y la de la Store instaladas
+> a la vez). La carpeta de capturas por defecto queda en tu equipo.
 
 ---
 
@@ -155,5 +156,6 @@ image editor, productivity
 
 **What's new in this version**:
 
-> The default captures folder stays on your PC, no longer in OneDrive, and the
-> folder can be typed or pasted in Settings. A sharper picture in the editor.
+> The Settings window no longer opens at sign-in when Windows starts the app
+> twice (for example with the MSI and the Store copy installed side by side).
+> The default captures folder stays on your PC.

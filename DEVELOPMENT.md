@@ -95,6 +95,9 @@ un archivo guardado puede volver a abrirse (20 000 px y 100 megapíxeles).
   para poder fotografiarlas en las pruebas. La versión publicada lo ignora.
 - Con `SCM_THEME=light` o `SCM_THEME=dark`, una compilación de depuración usa
   esa paleta sin tocar los ajustes ni Windows, para fotografiar las dos.
+- Con `SCM_STARTUP_GRACE_SECS=N`, una compilación de depuración acorta los
+  120 s durante los que un segundo arranque sin argumentos se ignora (el
+  inicio de sesión lanzando la app dos veces), para probar ese caso.
 - `cargo test icon_sheet -- --ignored` dibuja todos los iconos en claro y
   oscuro, a tamaño real y ampliados, en `SCM_ICON_SHEET` (o en `%TEMP%`).
 
@@ -106,7 +109,7 @@ en automático, del idioma de Windows.
 
 ## Rendimiento y memoria
 
-| | ScreenShotCM 0.4.13 |
+| | ScreenShotCM 0.4.14 |
 |---|---|
 | Instalador | 504 KB |
 | Programa | un solo `.exe` de 960 KB, sin DLL propias |

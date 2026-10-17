@@ -139,7 +139,7 @@ fn forward(request: &Request) {
     // the agent does not share: send it whole.
     let absolute = |p: &std::path::Path| std::path::absolute(p).unwrap_or_else(|_| p.to_path_buf());
     let request = match request {
-        Request::None => Request::Run(commands::Command::OpenSettings),
+        Request::None => Request::Relaunch,
         Request::Annotate(p) => Request::Annotate(absolute(p)),
         Request::Pin(p) => Request::Pin(absolute(p)),
         other => other.clone(),

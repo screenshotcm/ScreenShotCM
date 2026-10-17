@@ -1,6 +1,6 @@
 [package]
 name = "screenshotcm"
-version = "0.4.13"
+version = "0.4.14"
 edition = "2024"
 description = "ScreenShotCM — screenshots and annotation for Windows"
 license = "GPL-3.0-or-later"

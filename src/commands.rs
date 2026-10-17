@@ -35,7 +35,14 @@ pub enum Request {
     /// Started with no verb, or with one refused (unknown, or a link naming
     /// a file off the local drives): nothing to do but be running.
     None,
+    /// A plain launch handed to the agent already in the tray. Only a
+    /// forwarded request carries it: typed on a command line it is refused
+    /// like any unknown verb.
+    Relaunch,
 }
+
+/// How `Relaunch` travels between the two processes.
+const RELAUNCH: &str = "--relaunch";
 
 const VERBS: &[(&str, Command)] = &[
     ("capture-area", Command::CaptureArea),
@@ -110,11 +117,15 @@ pub fn encode(request: &Request) -> String {
             .unwrap_or_default(),
         Request::Annotate(p) => format!("--open-annotate\n{}", p.display()),
         Request::Pin(p) => format!("--pin\n{}", p.display()),
+        Request::Relaunch => RELAUNCH.into(),
         Request::None => String::new(),
     }
 }
 
 pub fn decode(text: &str) -> Request {
+    if text == RELAUNCH {
+        return Request::Relaunch;
+    }
     let args: Vec<String> = text.split('\n').map(str::to_owned).collect();
     if text.is_empty() {
         Request::None
@@ -238,5 +249,14 @@ mod tests {
         assert_eq!(percent_decode("a%2"), "a%2");
         assert_eq!(percent_decode("a%zz"), "a%zz");
         assert_eq!(percent_decode("ñ%ñ"), "ñ%ñ");
+    }
+
+    #[test]
+    fn a_plain_relaunch_travels_as_relaunch_and_is_refused_on_a_command_line() {
+        let text = encode(&Request::Relaunch);
+        assert_eq!(decode(&text), Request::Relaunch);
+        // Typed by hand it is an unknown verb: the launcher does nothing.
+        assert_eq!(parse_args(&args(&[&text])), Request::None);
+        assert_eq!(decode(""), Request::None);
     }
 }
